@@ -9,11 +9,29 @@ public class VRControllerGrab : MonoBehaviour
     List<Transform> grabbableList = new List<Transform>();
     public IGrabbable currentHeld { get; private set; }
 
+    BoxCollider bc;
+
+    Vector3 throwDirection;
+    float throwForce;
+
+    List<PhysicsSample> samples = new List<PhysicsSample>(32);
+    struct PhysicsSample
+    {
+        public float t;
+        public Vector3 pos;
+    }
+
     private void Start()
     {
         controller = GetComponent<VRController>();
+        bc = GetComponent<BoxCollider>();
         controller.onGrabStart += GrabStart;
         controller.onGrabEnd += GrabEnd;
+    }
+
+    private void LateUpdate()
+    {
+        CalculateForce();
     }
 
     private void OnDisable()
@@ -38,6 +56,25 @@ public class VRControllerGrab : MonoBehaviour
         if(currentHeld != null)
         {
             currentHeld.GrabEnd();
+        }
+
+        ColliderCheck();
+    }
+
+    void ColliderCheck()
+    {
+        Vector3 colPos = bc.center;
+        Vector3 colSize = bc.size;
+        Collider[] hits = Physics.OverlapBox(transform.position + colPos, colSize / 2, transform.rotation);
+        if(hits.Length > 0)
+        {
+            foreach(Collider col in hits)
+            {
+                if (col.gameObject.CompareTag("Grabbable") && !grabbableList.Contains(col.transform))
+                {
+                    grabbableList.Add(col.transform);
+                }
+            }
         }
     }
 
@@ -66,5 +103,14 @@ public class VRControllerGrab : MonoBehaviour
             if (grabbableList.Count == 0)
                 grabbableList.Clear();
         }
+    }
+
+    void CalculateForce()
+    {
+        samples.Add(new PhysicsSample
+        {
+            t = Time.time,
+            pos = transform.localPosition,
+        });
     }
 }

@@ -137,6 +137,7 @@ public class VRController : MonoBehaviour
 
     void DisableController()
     {
+
         // Trigger
         inputs.VRInputs.TriggerPressed.performed -= OnTriggerStarted;
         inputs.VRInputs.TriggerPressed.canceled -= OnTriggerCanceled;
