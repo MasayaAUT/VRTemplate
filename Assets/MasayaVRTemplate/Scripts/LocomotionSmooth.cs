@@ -49,8 +49,8 @@ public class LocomotionSmooth : MonoBehaviour
         Vector3 forward = GetDirection(0) * analogInput.y;
         Vector3 right = GetDirection(1) * analogInput.x;
 
-        Vector3 moveDirection = forward + right;
-        moveDirection *= Time.deltaTime * speed;
+        Vector3 moveDirection = (forward + right).normalized;
+        moveDirection *= Time.deltaTime * speed *100;
 
         rb.linearVelocity = moveDirection;
     }

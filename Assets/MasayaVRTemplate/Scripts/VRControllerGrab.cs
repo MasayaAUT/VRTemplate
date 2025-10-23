@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using static VRController;
@@ -14,10 +15,10 @@ public class VRControllerGrab : MonoBehaviour
     Vector3 throwDirection;
     float throwForce;
 
-    List<PhysicsSample> samples = new List<PhysicsSample>(32);
+    List<PhysicsSample> samples = new List<PhysicsSample>();
     struct PhysicsSample
     {
-        public float t;
+        public float time;
         public Vector3 pos;
     }
 
@@ -107,10 +108,57 @@ public class VRControllerGrab : MonoBehaviour
 
     void CalculateForce()
     {
+        float now = Time.time;
+
         samples.Add(new PhysicsSample
         {
-            t = Time.time,
+            time = now,
             pos = transform.localPosition,
         });
+
+        if(samples.Count >= 30)
+        {
+            samples.RemoveAt(0);
+        }
     }
+
+    public ThrowValues GetThrowValues()
+    {
+        ThrowValues returnValue = new ThrowValues()
+        {
+            force = 0,
+            direction = Vector3.zero
+        };
+
+        if (samples == null || samples.Count < 2)
+            return returnValue;
+
+        Vector3 velocitySum = Vector3.zero;
+        float totalTime = 0f;
+
+        for (int i = 1; i < samples.Count; i++)
+        {
+            float dt = samples[i].time - samples[i - 1].time;
+            if (dt <= 0f) continue;
+
+            Vector3 v = (samples[i].pos - samples[i - 1].pos) / dt;
+            velocitySum += v * dt;
+            totalTime += dt;
+        }
+
+        Vector3 avgVel = velocitySum / Mathf.Max(1e-6f, totalTime);
+        float force = avgVel.magnitude;
+        Vector3 dir = avgVel.normalized;
+
+        returnValue.force = force;
+        returnValue.direction = dir;
+
+        return returnValue;
+    }
+}
+
+public class ThrowValues
+{
+    public float force;
+    public Vector3 direction;
 }

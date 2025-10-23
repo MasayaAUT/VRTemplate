@@ -32,6 +32,7 @@ public class ThrowableObject : MonoBehaviour, IGrabbable
     void ParentObject()
     {
         rb.isKinematic = true;
+        GetComponent<Collider>().isTrigger = true;
         transform.parent = currentController.transform;
     }
 
@@ -45,6 +46,10 @@ public class ThrowableObject : MonoBehaviour, IGrabbable
 
     void ApplyThrow()
     {
-        rb.isKinematic = true;
+        GetComponent<Collider>().isTrigger = false;
+        rb.isKinematic = false;
+        ThrowValues throwValues = currentController.GetThrowValues();
+
+        rb.linearVelocity = throwValues.direction * throwValues.force * 2;
     }
 }
